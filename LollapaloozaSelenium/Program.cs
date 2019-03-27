@@ -46,6 +46,7 @@ namespace LollapaloozaSelenium
             Console.ReadKey();
         }
 
+        #region Inserts
         private static void GenerateSQLInserts()
         {
             using (StreamWriter writer = new StreamWriter($"{Directory.GetCurrentDirectory()}/EventManagementInserst.txt", false))
@@ -77,9 +78,6 @@ namespace LollapaloozaSelenium
             }
 
         }
-
-
-        #region Inserts
 
         private static string CreateActivitiesInserts()
         {
@@ -120,7 +118,7 @@ namespace LollapaloozaSelenium
             StringBuilder builder = new StringBuilder();
 
             foreach (var item in stages)
-                builder.AppendLine($"INSERT INTO [BotEventManagement].[Stages] ([StageId], [Name], [EventId]) VALUES ('{item.IdPalcoGuid}','{item.NomePalco.Replace("'","''")}','{_idEvento}')");
+                builder.AppendLine($"INSERT INTO [BotEventManagement].[Stages] ([StageId], [Name], [EventId]) VALUES ('{item.IdPalcoGuid}','{item.NomePalco.Replace("'", "''")}','{_idEvento}')");
 
             return builder.ToString();
         }
@@ -130,7 +128,7 @@ namespace LollapaloozaSelenium
         private static void UpdateUserPhoto()
         {
             foreach (var item in atracoes)
-                item.FotoAtracao = GetArtistProfile(item.FotoAtracao);
+                GetArtistProfileInformations(item);
         }
 
         private static void ManipulateTables(string tableId)
@@ -162,12 +160,15 @@ namespace LollapaloozaSelenium
         private static ReadOnlyCollection<IWebElement> FindAllColumnElements(IWebElement table) => table.FindElements(By.TagName("td"));
         private static ReadOnlyCollection<IWebElement> FindAllShowsByClass(IWebElement stageColumn) => stageColumn.FindElements(By.ClassName("o-session"));
 
-        private static string GetArtistProfile(string artistUrl)
+        private static void GetArtistProfileInformations(Atracao atracao)
         {
-            webDriver.Navigate().GoToUrl(artistUrl);
+            webDriver.Navigate().GoToUrl(atracao.FotoAtracao);
 
             var imageElement = webDriver.FindElementByXPath("//img[contains(@class,'o-entry__featured-img') and contains(@class,'wp-post-image')]").GetAttribute("src");
-            return imageElement;
+            atracao.FotoAtracao = imageElement;
+
+            var artistBiography = webDriver.FindElementByClassName("o-entry__content").GetAttribute("innerText");
+            atracao.BiografiaAtracao = artistBiography.Replace("'", "''");
         }
 
         private static void CreateNewShow(ReadOnlyCollection<IWebElement> showsDiv, string stageId, DateTime showDate)
